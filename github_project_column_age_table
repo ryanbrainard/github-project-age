@@ -29,13 +29,11 @@ def color_age(s)
   days = DateTime.now - DateTime.parse(s)
   case
   when days > 90
-    s.colorize(:red)
+    "#{s} ***".colorize(:red)
   when days > 60
-    s.colorize(:light_red)
+    "#{s} ** ".colorize(:yellow)
   when days > 30
-    s.colorize(:light_yellow)
-  when days > 10
-    s.colorize(:blue)
+    "#{s} *  ".colorize(:blue)
   else
     s
   end
