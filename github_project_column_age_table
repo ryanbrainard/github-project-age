@@ -27,13 +27,15 @@ column_info = MultiJson.decode(api.get(path: "/projects/columns/#{column_id}").b
 
 def color_age(s)
   days = DateTime.now - DateTime.parse(s)
+  months = (days / 30).to_i
+  s = "#{s} #{'*' * months}"
   case
   when days > 90
-    "#{s} ***".colorize(:red)
+    s.colorize(:red)
   when days > 60
-    "#{s} ** ".colorize(:yellow)
+    s.colorize(:yellow)
   when days > 30
-    "#{s} *  ".colorize(:blue)
+    s.colorize(:blue)
   else
     s
   end
@@ -49,11 +51,11 @@ loop do
 
     title = content['title']
     labels = content['labels'].map {|label| label['name']}.join(', ')
+    created_by = content['user']['login']
     created_at = color_age(content['created_at'])
-    updated_at = color_age(content['updated_at'])
     html_url = content['html_url']
 
-    rows << [title, labels, created_at, updated_at, html_url]
+    rows << [title, labels, created_by, created_at, html_url]
     print '.'
   end
   break if cards.empty?
@@ -62,6 +64,6 @@ end
 
 puts "\n\n", Terminal::Table.new(
   title: column_info['name'],
-  headings: ['Title', 'Labels', 'Created At', 'Updated At', 'URL'],
+  headings: ['Title', 'Labels', 'Created By', 'Created At', 'URL'],
   rows: rows
 )
