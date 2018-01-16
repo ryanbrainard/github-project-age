@@ -1,0 +1,24 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    colorize (0.8.1)
+    excon (0.59.0)
+    multi_json (1.12.2)
+    netrc (0.11.0)
+    terminal-table (1.5.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  colorize
+  excon
+  multi_json
+  netrc
+  terminal-table
+
+RUBY VERSION
+   ruby 2.4.2p198
+
+BUNDLED WITH
+   1.16.0

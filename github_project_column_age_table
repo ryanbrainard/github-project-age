@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby -w
+
+
+require 'netrc'
+require 'excon'
+require 'multi_json'
+require 'terminal-table'
+require 'colorize'
+require 'date'
+
+column_id = ARGV[0]
+raise ArgumentError.new('column_id not specified') unless column_id
+
+host = 'api.github.com'
+base_url = "https://#{host}"
+username, password = Netrc.read[host]
+api = Excon.new(base_url,
+  user: username,
+  password: password,
+  headers: {
+    'Accept' => 'application/vnd.github.inertia-preview+json',
+    'User-Agent' => 'github-project-age',
+  }
+)
+
+column_info = MultiJson.decode(api.get(path: "/projects/columns/#{column_id}").body)
+
+def color_age(s)
+  days = DateTime.now - DateTime.parse(s)
+  case
+  when days > 90
+    s.colorize(:red)
+  when days > 60
+    s.colorize(:light_red)
+  when days > 30
+    s.colorize(:light_yellow)
+  when days > 10
+    s.colorize(:blue)
+  else
+    s
+  end
+end
+
+rows = []
+page = 1
+loop do
+  cards = MultiJson.decode(api.get(path: column_info['cards_url'].sub(base_url, '') + "?page=#{page}").body)
+  cards.each do |item|
+    next unless item['content_url'] # TODO handle other cases
+    content = MultiJson.decode(api.get(path: item['content_url'].sub(base_url, '')).body)
+
+    title = content['title']
+    labels = content['labels'].map {|label| label['name']}.join(', ')
+    created_at = color_age(content['created_at'])
+    updated_at = color_age(content['updated_at'])
+    html_url = content['html_url']
+
+    rows << [title, labels, created_at, updated_at, html_url]
+    print '.'
+  end
+  break if cards.empty?
+  page += 1
+end
+
+puts "\n\n", Terminal::Table.new(
+  title: column_info['name'],
+  headings: ['Title', 'Labels', 'Created At', 'Updated At', 'URL'],
+  rows: rows
+)
